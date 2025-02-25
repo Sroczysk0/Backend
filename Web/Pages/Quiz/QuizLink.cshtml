@@ -1,0 +1,26 @@
+﻿@page
+@model BackendLab01.Pages.Quiz.QuizLinkModel
+@{
+ViewData["Title"] = "Lista Quizów";
+Layout = "~/Pages/Shared/_Layout.cshtml";
+}
+
+<h1>Lista Quizów</h1>
+
+@if (Model.Quizzes != null && Model.Quizzes.Any())
+{
+<ul class="list-group">
+    @foreach (var quiz in Model.Quizzes)
+    {
+    <li class="list-group-item">
+        <a asp-page="/Quiz/Item" asp-route-quizId="@quiz.Id" asp-route-itemId="1">
+            @quiz.Title
+        </a>
+    </li>
+    }
+</ul>
+}
+else
+{
+<p class="text-danger">Brak dostępnych quizów.</p>
+}
