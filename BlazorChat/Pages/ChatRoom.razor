@@ -1,8 +1,11 @@
 ﻿@page "/chatroom"
-@inject NavigationManager navigationManager
+@using BlazorChat.Hubs
 @using Microsoft.AspNetCore.SignalR.Client
+@inject NavigationManager NavigationManager
+@inject ChatUserService ChatUserService
 
-<h3>Chat Room</h3>
+<h1>Blazor SignalR Chat Sample</h1>
+<hr />
 
 @if (!_isChatting)
 {
@@ -26,7 +29,14 @@ else
         </div>
         <div>
             <input @bind="_newMessage" placeholder="Type a message" />
-            <button @onclick="SendMessage">Send</button>
+            <button @onclick="@(() => SendAsync(_newMessage))">Send</button>
+            <select class="form-select" @bind="_to">
+                <option value="All">All</option>
+                @foreach (var user in ChatUserService.GetAll().Where(u => u.Username != _username))
+                {
+                    <option value="@user.Username">@user.Username</option>
+                }
+            </select>
         </div>
     </div>
 }
@@ -41,6 +51,7 @@ else
     private string _username;
     private string _message;
     private string _newMessage;
+    private string _to = "All";
     private List<Message> _messages = new();
     private HubConnection _hubConnection;
 
@@ -55,17 +66,20 @@ else
         try
         {
             _isChatting = true;
-            await Task.Delay(1);
             _messages.Clear();
 
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl(navigationManager.BaseUri.TrimEnd('/') + "/chat") 
+                .WithUrl(NavigationManager.BaseUri.TrimEnd('/') + "/chat")
                 .Build();
 
             _hubConnection.On<string, string>("Broadcast", BroadcastMessage);
+            _hubConnection.On<string, string>("Private", PrivateMessage);
 
             await _hubConnection.StartAsync();
-            await SendMessageAsync($"[Notice] {_username} joined chat room.");
+
+            ChatUserService.Add(_hubConnection.ConnectionId, _username);
+
+            await _hubConnection.SendAsync("Broadcast", _username, $"[Notice] {_username} joined chat room.");
         }
         catch (Exception e)
         {
@@ -80,34 +94,41 @@ else
         InvokeAsync(StateHasChanged);
     }
 
-    private async Task SendMessage()
+    private void PrivateMessage(string name, string message)
     {
-        if (_isChatting && !string.IsNullOrWhiteSpace(_newMessage))
-        {
-            await SendMessageAsync(_newMessage);
-            _newMessage = string.Empty;
-        }
+        _messages.Add(new Message(name, $"[Private]: {message}", false));
+        InvokeAsync(StateHasChanged);
     }
 
-    private async Task SendMessageAsync(string message)
+    private async Task SendAsync(string message)
     {
         if (_isChatting && !string.IsNullOrWhiteSpace(message))
         {
-            await _hubConnection.SendAsync("Broadcast", _username, message);
+            if (_to == "All")
+            {
+                await _hubConnection.SendAsync("Broadcast", _username, message);
+            }
+            else
+            {
+                var connectionId = ChatUserService.GetConnectionIdByName(_to);
+                await _hubConnection.SendAsync("Private", _username, connectionId, message);
+            }
+
+            _newMessage = string.Empty;
         }
     }
 
     private class Message
     {
-        public Message(string username, string body, bool mine)
+        public string Username { get; set; }
+        public string Body { get; set; }
+        public bool IsMine { get; set; }
+
+        public Message(string username, string body, bool isMine)
         {
             Username = username;
             Body = body;
-            Mine = mine;
+            IsMine = isMine;
         }
-
-        public string Username { get; set; }
-        public string Body { get; set; }
-        public bool Mine { get; set; }
     }
 }
