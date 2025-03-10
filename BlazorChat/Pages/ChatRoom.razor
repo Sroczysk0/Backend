@@ -1,0 +1,113 @@
+﻿@page "/chatroom"
+@inject NavigationManager navigationManager
+@using Microsoft.AspNetCore.SignalR.Client
+
+<h3>Chat Room</h3>
+
+@if (!_isChatting)
+{
+    <div>
+        <label>Enter your name:</label>
+        <input @bind="_username" placeholder="Your name" />
+        <button @onclick="Chat">Join Chat</button>
+    </div>
+}
+else
+{
+    <div>
+        <h4>Welcome, @_username!</h4>
+        <div>
+            @foreach (var message in _messages)
+            {
+                <div>
+                    <strong>@message.Username:</strong> @message.Body
+                </div>
+            }
+        </div>
+        <div>
+            <input @bind="_newMessage" placeholder="Type a message" />
+            <button @onclick="SendMessage">Send</button>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <div class="alert alert-danger">@_message</div>
+}
+
+@code {
+    private bool _isChatting = false;
+    private string _username;
+    private string _message;
+    private string _newMessage;
+    private List<Message> _messages = new();
+    private HubConnection _hubConnection;
+
+    public async Task Chat()
+    {
+        if (string.IsNullOrWhiteSpace(_username))
+        {
+            _message = "Please enter a name";
+            return;
+        }
+
+        try
+        {
+            _isChatting = true;
+            await Task.Delay(1);
+            _messages.Clear();
+
+            _hubConnection = new HubConnectionBuilder()
+                .WithUrl(navigationManager.BaseUri.TrimEnd('/') + "/chat") 
+                .Build();
+
+            _hubConnection.On<string, string>("Broadcast", BroadcastMessage);
+
+            await _hubConnection.StartAsync();
+            await SendMessageAsync($"[Notice] {_username} joined chat room.");
+        }
+        catch (Exception e)
+        {
+            _message = $"ERROR: {e.Message}";
+            _isChatting = false;
+        }
+    }
+
+    private void BroadcastMessage(string username, string message)
+    {
+        _messages.Add(new Message(username, message, username == _username));
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SendMessage()
+    {
+        if (_isChatting && !string.IsNullOrWhiteSpace(_newMessage))
+        {
+            await SendMessageAsync(_newMessage);
+            _newMessage = string.Empty;
+        }
+    }
+
+    private async Task SendMessageAsync(string message)
+    {
+        if (_isChatting && !string.IsNullOrWhiteSpace(message))
+        {
+            await _hubConnection.SendAsync("Broadcast", _username, message);
+        }
+    }
+
+    private class Message
+    {
+        public Message(string username, string body, bool mine)
+        {
+            Username = username;
+            Body = body;
+            Mine = mine;
+        }
+
+        public string Username { get; set; }
+        public string Body { get; set; }
+        public bool Mine { get; set; }
+    }
+}
