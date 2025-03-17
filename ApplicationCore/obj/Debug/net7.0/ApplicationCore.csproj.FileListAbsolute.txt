@@ -10,3 +10,4 @@ C:\Users\LENOVO\Desktop\wsei-backend-lab-lab-01\wsei-backend-lab-lab-01\Applicat
 C:\Users\LENOVO\Desktop\wsei-backend-lab-lab-01\wsei-backend-lab-lab-01\ApplicationCore\obj\Debug\net7.0\refint\ApplicationCore.dll
 C:\Users\LENOVO\Desktop\wsei-backend-lab-lab-01\wsei-backend-lab-lab-01\ApplicationCore\obj\Debug\net7.0\ApplicationCore.pdb
 C:\Users\LENOVO\Desktop\wsei-backend-lab-lab-01\wsei-backend-lab-lab-01\ApplicationCore\obj\Debug\net7.0\ref\ApplicationCore.dll
+C:\Users\LENOVO\Desktop\wsei-backend-lab-lab-01\wsei-backend-lab-lab-01\ApplicationCore\obj\Debug\net7.0\ApplicationCore.csproj.AssemblyReference.cache

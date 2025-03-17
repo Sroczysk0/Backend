@@ -18,5 +18,5 @@ public interface IQuizUserService
             .Count(e => e.IsCorrect());
     }
 
-    List<Quiz> GetAllQuizzes();
+    IEnumerable<Quiz> FindAllQuizzes();
 }

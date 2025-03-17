@@ -1,19 +1,36 @@
-﻿using Microsoft.AspNetCore.Mvc.RazorPages;
+﻿using System.Numerics;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.CodeAnalysis.Elfie.Serialization;
 
 namespace BackendLab01.Pages;
 
 public class Summary : PageModel
-{   
-    private readonly IQuizUserService _userService;
-    
-    public int CorrectAnswerCount { get; set; }
+{
+    private IQuizUserService _userService;
+
     public Summary(IQuizUserService userService)
     {
         _userService = userService;
     }
 
-    public void OnGet(int quizId, int userId)
+    public int CorrectAnswers { get; set; }
+    public int TotalQuestions { get; set; }
+
+    public IActionResult OnGet(int quizId,int itemId)
     {
-        CorrectAnswerCount = _userService.CountCorrectAnswersForQuizFilledByUser(quizId, userId);
+        var quiz = _userService.FindQuizById(quizId);
+        if (quiz == null)
+        {
+            return NotFound("Taki Quiz nie istnieje");
+        }
+
+        int userId = 1;
+        var userAnswers = _userService.GetUserAnswersForQuiz(quizId, userId);
+
+        TotalQuestions = quiz.Items.Count;
+
+        CorrectAnswers = userAnswers.Count(a => a.IsCorrect());
+        return Page();
     }
 }

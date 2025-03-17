@@ -1,40 +1,23 @@
-@page "{quizId}/{itemIndex?}"
-@model BackendLab01.Pages.Quiz.QuizModel
+@page "{quizId}/{itemId}"
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@model BackendLab01.Pages.QuizModel
 @{
     ViewData["Title"] = "Quiz";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
 
 <h1>Quiz</h1>
-
-@if (!string.IsNullOrEmpty(Model?.Question))
-{
-    <h3>@Model.Question</h3>
-
-    <form method="post">
-        <input type="hidden" asp-for="ItemId" />
-        <input type="hidden" asp-for="QuizId" />
-        <input type="hidden" asp-for="NextItemIndex" />
-
-        @if (Model?.Answers != null && Model.Answers.Any())
+<h3>@Model?.Question</h3>
+<form method="post">
+    @if (Model.Answers is not null)
+    {
+        @foreach (var item in Model?.Answers)
         {
-            @foreach (var item in Model.Answers)
-            {
-                <div class="form-check">
-                    <input class="form-check-input" type="radio" id="answer-@item" value="@item" asp-for="UserAnswer" required />
-                    <label class="form-check-label" for="answer-@item">@item</label>
-                </div>
-            }
+            <div class="form-check">
+                <input class="form-check-input" type="radio" value="@item" asp-for=@Model.UserAnswer/>
+                <label class="form-check-label" for="@item">@item</label>
+            </div>
         }
-        else
-        {
-            <p class="text-danger">Brak dostępnych odpowiedzi.</p>
-        }
-
-        <button type="submit" class="btn btn-primary mt-3">Zapisz</button>
-    </form>
-}
-else
-{
-    <p class="text-danger">Brak dostępnego pytania.</p>
-}
+    }
+    <button type="submit">Zapisz</button>
+</form>

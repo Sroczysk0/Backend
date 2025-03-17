@@ -1,8 +1,16 @@
-﻿@page "{quizId}/{userId}"
+﻿@page "{quizId}/{itemId}"
 @model BackendLab01.Pages.Summary
 @{
-    ViewData["Title"] = "Summary";
+    ViewData["Title"] = "summary";
     Layout = "~/Pages/Shared/_Layout.cshtml";
 }
+
 <H3>@ViewData["Title"]</H3>
-<p>Your score is @Model.CorrectAnswerCount</p>
+
+<div class="card">
+    <div class="card-body">
+        <h2 class="card-title">Wynik</h2>
+        <p><strong>Ilość pytań:</strong> @Model.TotalQuestions</p>
+        <p><strong>Poprawne odpowiedzi:</strong> @Model.CorrectAnswers</p>
+    </div>
+</div>

@@ -33,14 +33,14 @@ public class QuizUserService: IQuizUserService
         answerRepository.Add(userAnswer);
     }
 
+
     public List<QuizItemUserAnswer> GetUserAnswersForQuiz(int quizId, int userId)
     {
         return answerRepository.FindBySpecification(new QuizItemsForQuizIdFilledByUser(quizId, userId)).ToList();
     }
 
-    public List<Quiz> GetAllQuizzes()
+    public IEnumerable<Quiz> FindAllQuizzes()
     {
         return quizRepository.FindAll();
     }
-
 }
